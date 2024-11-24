@@ -13,11 +13,12 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
 
 @Entity
 @Table(name = "pet")
+@Builder
 public class Pet {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "pet_id")
@@ -41,10 +42,11 @@ public class Pet {
     private List<Concerned> concerned = new ArrayList<>();
 
     @OneToOne
-    @JoinColumn(name = "additional_info_id", nullable = false)
+    @JoinColumn(name = "additional_info_id", nullable = true)
     private AdditionalInfo additionalInfo;
 
     @OneToMany
     @JoinColumn(name = "recommended_insurance_id")
     private List<RecommendedInsurance> recommendedInsurance = new ArrayList<>();
+
 }
