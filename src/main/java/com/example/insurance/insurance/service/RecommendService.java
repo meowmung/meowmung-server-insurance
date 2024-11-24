@@ -22,33 +22,18 @@ public class RecommendService {
 
     // 1차 추천
     public String firstRecommend(RecommendRequest recommendRequest) {
-        // 저장
-        Optional<BreedCode> breedCode = breedCodeRepository.findById(recommendRequest.breedName());
+        Pet pet = petRepository.findById(recommendRequest.petId()).orElseThrow(() -> new RuntimeException("그런 펫 없어요"));
 
-        if (breedCode.isEmpty()) {
-            throw new RuntimeException("그런 종 없는데요");
-        }
-
-        // concernedName 리스트를 하나씩 Concerned 타입의 concerned 로
-        // 만들어서
-        // List 로 만들어
         List<Concerned> concerneds = new ArrayList<>();
-        for (String item: recommendRequest.concernedName()) {
+        for (String item : recommendRequest.concernedName()) {
             Concerned concerned = Concerned.builder()
                     .name(item)
                     .build();
             concerneds.add(concerned);
         }
-        Pet pet = recommendRequest.toEntity(concerneds, breedCode.get(), recommendRequest);
-        petRepository.save(pet);
-
-        concerneds.forEach(concerned -> {
-            concerned.setPet(pet);
-        });
+        pet.addConcerned(concerneds);
         concernedRepository.saveAll(concerneds);
-
         // 보험 결과 조회
-
 
         // 조회 결과 저장
 

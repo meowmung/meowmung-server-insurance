@@ -4,8 +4,8 @@ import com.example.insurance.insurance.dto.request.RecommendRequest;
 import com.example.insurance.insurance.service.RecommendService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -15,7 +15,7 @@ public class RecommendController {
     private final RecommendService recommendService;
 
     @PostMapping
-    public String firstRecommend(@RequestParam RecommendRequest recommendRequest) {
+    public String firstRecommend(@RequestBody RecommendRequest recommendRequest) {
         return recommendService.firstRecommend(recommendRequest);
     }
 

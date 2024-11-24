@@ -13,11 +13,17 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "pet")
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
 public class Pet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,5 +54,9 @@ public class Pet {
     @OneToMany
     @JoinColumn(name = "recommended_insurance_id")
     private List<RecommendedInsurance> recommendedInsurance = new ArrayList<>();
+
+    public void addConcerned(List<Concerned> concerned) {
+        this.concerned.addAll(concerned);
+    }
 
 }
