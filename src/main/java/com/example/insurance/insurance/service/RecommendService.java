@@ -1,24 +1,30 @@
 package com.example.insurance.insurance.service;
 
+import com.example.insurance.insurance.dto.AdditionalDto;
+import com.example.insurance.insurance.dto.request.AdditionalRequest;
 import com.example.insurance.insurance.dto.request.RecommendRequest;
+import com.example.insurance.pet.entity.AdditionalInfo;
 import com.example.insurance.pet.entity.Concerned;
 import com.example.insurance.pet.entity.Pet;
-import com.example.insurance.pet.entity.code.BreedCode;
-import com.example.insurance.pet.repository.BreedCodeRepository;
+import com.example.insurance.pet.entity.code.DiseaseCode;
 import com.example.insurance.pet.repository.ConcernedRepository;
+import com.example.insurance.pet.repository.DiseaseCodeRepository;
 import com.example.insurance.pet.repository.PetRepository;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
 public class RecommendService {
     private final PetRepository petRepository;
-    private final BreedCodeRepository breedCodeRepository;
     private final ConcernedRepository concernedRepository;
+    private final DiseaseCodeRepository diseaseCodeRepository;
 
     // 1차 추천
     public String firstRecommend(RecommendRequest recommendRequest) {
@@ -41,4 +47,35 @@ public class RecommendService {
 
         return "HI";
     }
+
+    public String additionalRecommend(AdditionalRequest additionalRequest) {
+        Pet pet = petRepository.findById(additionalRequest.petId()).orElseThrow(() -> new RuntimeException("그런 펫 없는데"));
+        DiseaseCode diseaseCode = diseaseCodeRepository.findById(additionalRequest.diseaseName()).orElseThrow(() -> new RuntimeException("그런 질병 없는데요"));
+        AdditionalInfo additionalInfo = additionalRequest.toEntity(additionalRequest, diseaseCode);
+        pet.addAdditionalInfo(additionalInfo);
+        petRepository.save(pet);
+
+        AdditionalDto additionalDto = new AdditionalDto(pet.getAge(),
+                                                        pet.getGender(),
+                                                        pet.getNeutered(),
+                                                        pet.getBreedCode().getCode(),
+                                                        pet.getAdditionalInfo().getWeight(),
+                                                        pet.getAdditionalInfo().getFoodCount(),
+                                                        pet.getAdditionalInfo().getDiseaseCode().getCode()
+                                                        );
+
+        RestTemplate restTemplate = new RestTemplate();
+        // 요청 매개변수 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<AdditionalDto> request = new HttpEntity<>(additionalDto, headers);
+
+//        ResponseDto responseDto = restTemplate.exchange(url, HttpMethod.POST, request, ResponseDto.class).getBody();
+
+        return "hi";
+    }
+
+
+
+
 }

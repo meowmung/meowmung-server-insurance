@@ -1,5 +1,6 @@
 package com.example.insurance.insurance.controller;
 
+import com.example.insurance.insurance.dto.request.AdditionalRequest;
 import com.example.insurance.insurance.dto.request.RecommendRequest;
 import com.example.insurance.insurance.service.RecommendService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,11 @@ public class RecommendController {
     @PostMapping
     public String firstRecommend(@RequestBody RecommendRequest recommendRequest) {
         return recommendService.firstRecommend(recommendRequest);
+    }
+
+    @PostMapping("/additional")
+    public String additionalRecommend(@RequestBody AdditionalRequest additionalRequest) {
+        return recommendService.additionalRecommend(additionalRequest);
     }
 
 }
