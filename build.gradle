@@ -1,0 +1,54 @@
+//buildscript {
+//	ext {
+//		protobufVersion = '3.25.1'
+//		protobufPluginVersion = '0.8.14'
+//		grpcVersion = '1.58.1'
+//	}
+//}
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.5'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+//	// gRPC 관련 의존성
+//	implementation "com.google.protobuf:protobuf-java-util:3.25.1"
+//	implementation 'com.google.protobuf:protobuf-java:4.28.2'
+//	implementation 'net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE'
+//	runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
+//	implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+//	implementation "io.grpc:grpc-stub:${grpcVersion}"
+//	compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
+
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
