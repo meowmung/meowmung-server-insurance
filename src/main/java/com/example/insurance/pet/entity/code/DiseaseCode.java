@@ -4,9 +4,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
 @Entity
 @Table(name = "disease_code")
+@Getter
 public class DiseaseCode {
 
     @Id
@@ -14,6 +16,6 @@ public class DiseaseCode {
     private String name;
 
     @Column(name = "disease_code")
-    private long code;
+    private Integer code;
 
 }
