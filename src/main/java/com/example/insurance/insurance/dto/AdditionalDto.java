@@ -7,17 +7,15 @@ public class AdditionalDto {
     private Integer breedCode;
     private Integer weight;
     private Integer foodCount;
-    private Integer diseaseCode;
 
     public AdditionalDto(Integer age, Boolean gender, Boolean neutered, Integer breedCode, Integer weight,
-                         Integer foodCount, Integer diseaseCode) {
+                         Integer foodCount) {
         this.age = age;
         this.gender = gender;
         this.neutered = neutered;
         this.breedCode = breedCode;
         this.weight = weight;
         this.foodCount = foodCount;
-        this.diseaseCode = diseaseCode;
     }
 }
 

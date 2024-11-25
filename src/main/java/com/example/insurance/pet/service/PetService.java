@@ -15,11 +15,18 @@ public class PetService {
     private final PetRepository petRepository;
     private final BreedCodeRepository breedCodeRepository;
 
+    // 펫 정보
     public PetResponse enrollPet(PetRequest petRequest) {
-        BreedCode breedCode = breedCodeRepository.findById(petRequest.breedName())
-                .orElseThrow(()->new RuntimeException("그런 종 없는데요"));
+        BreedCode breedCode = getBreedCode(petRequest);
         Pet savedPet = petRepository.save(petRequest.toEntity(breedCode, petRequest));
         PetResponse petResponse = PetResponse.fromEntity(savedPet);
         return petResponse;
     }
+
+    // 종 코드 찾기
+    private BreedCode getBreedCode(PetRequest petRequest) {
+        return breedCodeRepository.findById(petRequest.breedName())
+                .orElseThrow(() -> new RuntimeException("그런 종 없는데요"));
+    }
+
 }

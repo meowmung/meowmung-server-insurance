@@ -60,8 +60,7 @@ public class RecommendService {
                                                         pet.getNeutered(),
                                                         pet.getBreedCode().getCode(),
                                                         pet.getAdditionalInfo().getWeight(),
-                                                        pet.getAdditionalInfo().getFoodCount(),
-                                                        pet.getAdditionalInfo().getDiseaseCode().getCode()
+                                                        pet.getAdditionalInfo().getFoodCount()
                                                         );
 
         RestTemplate restTemplate = new RestTemplate();
