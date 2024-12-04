@@ -11,11 +11,11 @@ import com.example.insurance.insurance.dto.use.SendPetDto;
 import com.example.insurance.insurance.dto.request.RecommendRequest;
 import com.example.insurance.insurance.dto.response.RecommendResponse;
 import com.example.insurance.insurance.dto.response.RecommendResponse.TermsDto;
-import com.example.insurance.insurance.repository.DiseaseCodeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,11 +28,17 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class PetInfoService {
     private final RestTemplate restTemplate;
-    private final DiseaseCodeRepository diseaseCodeRepository;
+
+    @Value("${spring.pet.url.first}")
+    private String petFirst;
+    @Value("${spring.pet.url.second}")
+    private String petSecond;
+    @Value("${spring.pet.url.ml-server}")
+    private String petMlServer;
 
     // 보험 결과, level, petId, 우려질병 -> Pet 서버
     public ResponseEntity<String> sendPetInfo(RecommendRequest recommendRequest,
-                                                List<RecommendResponse> recommendResponse) {
+                                              List<RecommendResponse> recommendResponse) {
         // 보험결과, level
         List<RecommendResultsDto> recommendResultsDtos = new ArrayList<>();
         for (RecommendResponse item : recommendResponse) {
@@ -64,18 +70,15 @@ public class PetInfoService {
         // 요청 본문과 헤더를 포함한 HttpEntity 생성
         HttpEntity<FirstRecommendedDto> request = new HttpEntity<>(firstRecommendedDto, headers);
 
-        // Pet 서버 URL
-        String url = "http://localhost:8080/pet/recommend";
-
         // 요청 전송 및 응답 처리
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-            return response;
+        ResponseEntity<String> response = restTemplate.exchange(petFirst, HttpMethod.POST, request, String.class);
+        return response;
 
     }
 
     // 2차 보험 결과, level, petId, 실제질병 -> Pet 서버
     public ResponseEntity<String> sendAdditionalPetInfo(AdditionalRequest additionalRequest,
-                                                          RecommendResponse recommendResponse) {
+                                                        RecommendResponse recommendResponse) {
         // 보험결과, level
         List<String> termIds = new ArrayList<>();
         for (TermsDto term : recommendResponse.terms()) {
@@ -96,7 +99,8 @@ public class PetInfoService {
                 .currentDisease(additionalRequest.currentDisease())
                 .build();
 
-        SecondRecommendedDto secondRecommendedDto = new SecondRecommendedDto(sendAdditionalPetInfoDto, recommendResultsDto);
+        SecondRecommendedDto secondRecommendedDto = new SecondRecommendedDto(sendAdditionalPetInfoDto,
+                recommendResultsDto);
 
         // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -105,12 +109,9 @@ public class PetInfoService {
         // 요청 본문과 헤더를 포함한 HttpEntity 생성
         HttpEntity<SecondRecommendedDto> request = new HttpEntity<>(secondRecommendedDto, headers);
 
-        // Pet 서버 URL
-        String url = "http://localhost:8080/pet/additional";
-
         // 요청 전송 및 응답 처리
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(petSecond, HttpMethod.POST, request, String.class);
             return response;
         } catch (
                 Exception e) {
@@ -118,12 +119,10 @@ public class PetInfoService {
             System.err.println("펫서버로 펫정보 전송 실패: " + e.getMessage());
             throw new RuntimeException("펫서버로 펫 정보 전송 실패", e);
         }
-
-
     }
 
     public String sendCurrentDisease(AdditionalRequest additionalRequest) {
-        int diseaseCode = changeToDiseaseCode(additionalRequest.currentDisease());
+//        int diseaseCode = changeToDiseaseCode(additionalRequest.currentDisease());
 
         // 타입
         PredictionDiseaseDto predictionDiseaseDto = PredictionDiseaseDto.builder()
@@ -134,7 +133,7 @@ public class PetInfoService {
                 .weight(additionalRequest.weight().floatValue())
                 .food_count(additionalRequest.foodCount().floatValue())
                 .neutered(additionalRequest.neutered() ? 1 : 0)
-                .current_disease(diseaseCode)
+                .current_disease(additionalRequest.currentDisease())
                 .build();
 
         // 헤더 설정
@@ -144,20 +143,20 @@ public class PetInfoService {
         // 요청 본문과 헤더를 포함한 HttpEntity 생성
         HttpEntity<PredictionDiseaseDto> request = new HttpEntity<>(predictionDiseaseDto, headers);
 
-        // ML 서버 url
-        String url = "http://192.168.1.2:8000/insurance/recommend";
-
         // 요청 전송 및 응답 처리
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(petMlServer, HttpMethod.POST, request,
+                    String.class);
             String responseBody = response.getBody();
 
             ObjectMapper objectMapper = new ObjectMapper();
-            PredictionDiseaseResponse predictionDiseaseResponse = objectMapper.readValue(responseBody, PredictionDiseaseResponse.class);
+            PredictionDiseaseResponse predictionDiseaseResponse = objectMapper.readValue(responseBody,
+                    PredictionDiseaseResponse.class);
 
-            int predictionDiseaseCode = predictionDiseaseResponse.predictionDiseaseCode();
+//            int predictionDiseaseCode = predictionDiseaseResponse.disease();
+//            return changeToDiseaseName(predictionDiseaseCode);
 
-            return changeToDiseaseName(predictionDiseaseCode);
+            return predictionDiseaseResponse.disease();
         } catch (
                 Exception e) {
             // 예외 처리 (로그 출력 등)
@@ -166,14 +165,13 @@ public class PetInfoService {
         }
     }
 
-    public int changeToDiseaseCode (String diseaseName) {
-        System.out.println(diseaseCodeRepository.findByName(diseaseName).getCode());
-        return diseaseCodeRepository.findByName(diseaseName).getCode();
-    }
-
-    public String changeToDiseaseName (int diseaseCode) {
-        System.out.println(diseaseCodeRepository.findByCode(diseaseCode).getName());
-        return diseaseCodeRepository.findByCode(diseaseCode).getName();
-    }
+    // 예측 질병 타입 string 으로 변경됨
+//    public int changeToDiseaseCode (String diseaseName) {
+//        return diseaseCodeRepository.findByName(diseaseName).getCode();
+//    }
+//
+//    public String changeToDiseaseName (int disease) {
+//        return diseaseCodeRepository.findByCode(disease);
+//    }
 
 }
