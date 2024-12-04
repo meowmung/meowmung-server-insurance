@@ -20,8 +20,6 @@ public class RecommendController {
     private final PetInfoService petInfoService;
 
     // 1차 추천
-    // 우려 질병 받기 ( from client)
-    // 펫 정보 받기 ( from pet server)
     @PostMapping
     public List<RecommendResponse> firstRecommend(@RequestBody RecommendRequest recommendRequest) {
         // 보험 결과 추출해서 client 한테 보내기
@@ -35,11 +33,11 @@ public class RecommendController {
     public RecommendResponse additionalRecommend(@RequestBody AdditionalRequest additionalRequest) {
         String predictionDiseaseName = petInfoService.sendCurrentDisease(additionalRequest);
         // 보험 결과 추출해서 client 한테 보내기
-        RecommendResponse recommendResponse = recommendService.additionalRecommend(additionalRequest, predictionDiseaseName);
+        RecommendResponse recommendResponse = recommendService.additionalRecommend(additionalRequest,
+                predictionDiseaseName);
         // 보험 결과 펫 서버로 보내기
         petInfoService.sendAdditionalPetInfo(additionalRequest, recommendResponse);
-        return null;
+        return recommendResponse;
     }
-
 
 }

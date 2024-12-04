@@ -30,5 +30,4 @@ public class Results {
     public Terms terms;
 
 
-
 }

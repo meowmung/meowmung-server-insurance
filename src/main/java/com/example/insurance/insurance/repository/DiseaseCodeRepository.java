@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 public interface DiseaseCodeRepository extends JpaRepository<DiseaseCode, String> {
     DiseaseCode findByName(String name);
 
-    //    DiseaseCode findByCode(int code);
-    @Query("SELECT d FROM DiseaseCode d WHERE d.code = :code")
-    DiseaseCode findByCode(@Param("code") int code);
+    @Query("SELECT d.name FROM DiseaseCode d WHERE d.code = :code")
+    String findByCode(@Param("code") int code);
 }

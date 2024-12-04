@@ -31,13 +31,18 @@ public class RecommendService {
 
     // 2차 추천
     public RecommendResponse additionalRecommend(AdditionalRequest additionalRequest, String predictionDiseaseName) {
-        // additionalRequest 그대로 ML 보내서 diseaseName 받기
+        // 이거 수정 필요 ML 수정 끝나면 실제 예측질병으로 바꾸기
+        // 그냥 이거 삭제하면 됨
+        // FIXME : 이거 고쳐야함
+        predictionDiseaseName = additionalRequest.currentDisease();
+
         Insurance results = getTopInsurance(predictionDiseaseName, additionalRequest.petType());
         return RecommendResponse.fromEntity(results);
     }
 
     public Insurance getTopInsurance(String predictionDiseaseName, String petType) {
-        Insurance insurance = resultsRepository.getResult(predictionDiseaseName, petType);
+        System.out.println("예측질병" + predictionDiseaseName);
+        Insurance insurance = resultsRepository.getResult(predictionDiseaseName, petType).orElseThrow();
         return insurance;
     }
 

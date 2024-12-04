@@ -10,13 +10,4 @@ public record TermsDto(
         String details
 ) {
 
-    public static TermsDto fromEntity(Terms terms) {
-        return new TermsDto(
-                terms.getId(),
-                terms.getName(),
-                terms.getCauses(),
-                terms.getLimits(),
-                terms.getDetails()
-        );
-    }
 }
