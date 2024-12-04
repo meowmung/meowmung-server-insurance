@@ -1,0 +1,12 @@
+package com.example.insurance.insurance.dto.use;
+
+import java.util.List;
+import lombok.Builder;
+
+@Builder
+public record ConcernedPetDto(
+        Long petId,
+        List<String> concerneds
+
+) {
+}

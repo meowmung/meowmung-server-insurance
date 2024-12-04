@@ -1,80 +1,44 @@
 package com.example.insurance.insurance.service;
 
-import com.example.insurance.insurance.dto.AdditionalDto;
 import com.example.insurance.insurance.dto.request.AdditionalRequest;
 import com.example.insurance.insurance.dto.request.RecommendRequest;
-import com.example.insurance.pet.entity.AdditionalInfo;
-import com.example.insurance.pet.entity.Concerned;
-import com.example.insurance.pet.entity.Pet;
-import com.example.insurance.pet.entity.code.DiseaseCode;
-import com.example.insurance.pet.repository.ConcernedRepository;
-import com.example.insurance.pet.repository.DiseaseCodeRepository;
-import com.example.insurance.pet.repository.PetRepository;
+import com.example.insurance.insurance.dto.response.RecommendResponse;
+import com.example.insurance.insurance.entity.Insurance;
+import com.example.insurance.insurance.repository.ResultsRepository;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
 public class RecommendService {
-    private final PetRepository petRepository;
-    private final ConcernedRepository concernedRepository;
-    private final DiseaseCodeRepository diseaseCodeRepository;
+    private final ResultsRepository resultsRepository;
 
-    // 1차 추천
-    public String firstRecommend(RecommendRequest recommendRequest) {
-        Pet pet = petRepository.findById(recommendRequest.petId()).orElseThrow(() -> new RuntimeException("그런 펫 없어요"));
-
-        List<Concerned> concerneds = new ArrayList<>();
-        for (String item : recommendRequest.concernedName()) {
-            Concerned concerned = Concerned.builder()
-                    .name(item)
-                    .build();
-            concerneds.add(concerned);
+    public List<RecommendResponse> firstRecommend(RecommendRequest recommendRequest) {
+        List<Insurance> results = getTopInsurances(recommendRequest.concernedNames(), recommendRequest.petType());
+        List<RecommendResponse> recommendResponses = new ArrayList<>();
+        for (Insurance result : results) {
+            recommendResponses.add(RecommendResponse.fromEntity(result));
         }
-        pet.addConcerned(concerneds);
-        concernedRepository.saveAll(concerneds);
-        // 보험 결과 조회
-
-        // 조회 결과 저장
-
-        // 조회 결과 반환
-
-        return "HI";
+        return recommendResponses;
     }
 
-    public String additionalRecommend(AdditionalRequest additionalRequest) {
-        Pet pet = petRepository.findById(additionalRequest.petId()).orElseThrow(() -> new RuntimeException("그런 펫 없는데"));
-        DiseaseCode diseaseCode = diseaseCodeRepository.findById(additionalRequest.diseaseName()).orElseThrow(() -> new RuntimeException("그런 질병 없는데요"));
-        AdditionalInfo additionalInfo = additionalRequest.toEntity(additionalRequest, diseaseCode);
-        pet.addAdditionalInfo(additionalInfo);
-        petRepository.save(pet);
-
-        AdditionalDto additionalDto = new AdditionalDto(pet.getAge(),
-                                                        pet.getGender(),
-                                                        pet.getNeutered(),
-                                                        pet.getBreedCode().getCode(),
-                                                        pet.getAdditionalInfo().getWeight(),
-                                                        pet.getAdditionalInfo().getFoodCount()
-                                                        );
-
-        RestTemplate restTemplate = new RestTemplate();
-        // 요청 매개변수 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<AdditionalDto> request = new HttpEntity<>(additionalDto, headers);
-
-//        ResponseDto responseDto = restTemplate.exchange(url, HttpMethod.POST, request, ResponseDto.class).getBody();
-
-        return "hi";
+    public List<Insurance> getTopInsurances(List<String> concernedNames, String petType) {
+        List<Insurance> results = resultsRepository.getResults(concernedNames, petType);
+        return results;
     }
 
+    // 2차 추천
+    public RecommendResponse additionalRecommend(AdditionalRequest additionalRequest, String predictionDiseaseName) {
+        // additionalRequest 그대로 ML 보내서 diseaseName 받기
+        Insurance results = getTopInsurance(predictionDiseaseName, additionalRequest.petType());
+        return RecommendResponse.fromEntity(results);
+    }
 
-
+    public Insurance getTopInsurance(String predictionDiseaseName, String petType) {
+        Insurance insurance = resultsRepository.getResult(predictionDiseaseName, petType);
+        return insurance;
+    }
 
 }
