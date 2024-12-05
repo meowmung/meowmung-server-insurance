@@ -17,7 +17,7 @@ public interface ResultsRepository extends JpaRepository<Results, Long> {
                     FROM Terms t
                     INNER JOIN t.results r 
                     INNER JOIN t.insurance i
-                    WHERE r.diseaseName IN :predictionDiseaseName 
+                    WHERE r.diseaseName LIKE CONCAT('%', :predictionDiseaseName, '%') 
                     AND t.id LIKE CONCAT('%', :petType, '%')
                     GROUP BY t.insurance.insuranceId
                     ORDER BY  COUNT(i.insuranceId) DESC
