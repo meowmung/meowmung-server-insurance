@@ -11,6 +11,6 @@ public record PredictionDiseaseDto(
         float weight,
         float food_count,
         int neutered,
-        String current_disease
+        int current_disease
 ) {
 }
