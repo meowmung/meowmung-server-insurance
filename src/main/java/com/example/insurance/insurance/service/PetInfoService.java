@@ -11,6 +11,7 @@ import com.example.insurance.insurance.dto.use.SendPetDto;
 import com.example.insurance.insurance.dto.request.RecommendRequest;
 import com.example.insurance.insurance.dto.response.RecommendResponse;
 import com.example.insurance.insurance.dto.response.RecommendResponse.TermsDto;
+import com.example.insurance.insurance.repository.DiseaseCodeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class PetInfoService {
     private final RestTemplate restTemplate;
+    private final DiseaseCodeRepository diseaseCodeRepository;
 
     @Value("${spring.pet.url.first}")
     private String petFirst;
@@ -122,7 +124,7 @@ public class PetInfoService {
     }
 
     public String sendCurrentDisease(AdditionalRequest additionalRequest) {
-//        int diseaseCode = changeToDiseaseCode(additionalRequest.currentDisease());
+        int diseaseCode = changeToDiseaseCode(additionalRequest.currentDisease());
 
         // 타입
         PredictionDiseaseDto predictionDiseaseDto = PredictionDiseaseDto.builder()
@@ -133,7 +135,7 @@ public class PetInfoService {
                 .weight(additionalRequest.weight().floatValue())
                 .food_count(additionalRequest.foodCount().floatValue())
                 .neutered(additionalRequest.neutered() ? 1 : 0)
-                .current_disease(additionalRequest.currentDisease())
+                .current_disease(diseaseCode)
                 .build();
 
         // 헤더 설정
@@ -153,10 +155,11 @@ public class PetInfoService {
             PredictionDiseaseResponse predictionDiseaseResponse = objectMapper.readValue(responseBody,
                     PredictionDiseaseResponse.class);
 
-//            int predictionDiseaseCode = predictionDiseaseResponse.disease();
-//            return changeToDiseaseName(predictionDiseaseCode);
+            int predictionDiseaseCode = predictionDiseaseResponse.disease();
 
-            return predictionDiseaseResponse.disease();
+            return changeToDiseaseName(predictionDiseaseCode);
+
+//            return predictionDiseaseResponse.disease();
         } catch (
                 Exception e) {
             // 예외 처리 (로그 출력 등)
@@ -166,12 +169,12 @@ public class PetInfoService {
     }
 
     // 예측 질병 타입 string 으로 변경됨
-//    public int changeToDiseaseCode (String diseaseName) {
-//        return diseaseCodeRepository.findByName(diseaseName).getCode();
-//    }
-//
-//    public String changeToDiseaseName (int disease) {
-//        return diseaseCodeRepository.findByCode(disease);
-//    }
+    public int changeToDiseaseCode (String diseaseName) {
+        return diseaseCodeRepository.findByName(diseaseName).getCode();
+    }
+
+    public String changeToDiseaseName (int disease) {
+        return diseaseCodeRepository.findByCode(disease);
+    }
 
 }
