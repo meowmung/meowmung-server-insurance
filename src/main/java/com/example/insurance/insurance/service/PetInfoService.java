@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PetInfoService {
     private final RestTemplate restTemplate;
     private final DiseaseCodeRepository diseaseCodeRepository;
@@ -118,7 +120,7 @@ public class PetInfoService {
         } catch (
                 Exception e) {
             // 예외 처리 (로그 출력 등)
-            System.err.println("펫서버로 펫정보 전송 실패: " + e.getMessage());
+            log.error("펫서버로 펫정보 전송 실패: {}", e.getMessage());
             throw new RuntimeException("펫서버로 펫 정보 전송 실패", e);
         }
     }
@@ -163,7 +165,7 @@ public class PetInfoService {
         } catch (
                 Exception e) {
             // 예외 처리 (로그 출력 등)
-            System.err.println("실제 질병 전송 실패: " + e.getMessage());
+            log.error("실제 질병 전송 실패: {}", e.getMessage());
             throw new RuntimeException("실제 질병 전송 실패", e);
         }
     }
