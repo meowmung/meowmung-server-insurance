@@ -15,6 +15,7 @@ import com.example.insurance.insurance.repository.DiseaseCodeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -39,6 +41,55 @@ public class PetInfoService {
     private String petSecond;
     @Value("${spring.pet.url.ml-server}")
     private String petMlServer;
+
+    // 보험 결과, level, petId, 우려질병 -> Pet 서버
+    // 비동기 처리 버전
+//    @Async
+//    public CompletableFuture<ResponseEntity<String>> sendPetInfo(RecommendRequest recommendRequest,
+//                                                                 List<RecommendResponse> recommendResponse) {
+//        try {
+//            // 보험결과, level
+//            List<RecommendResultsDto> recommendResultsDtos = new ArrayList<>();
+//            for (RecommendResponse item : recommendResponse) {
+//                List<String> termIds = new ArrayList<>();
+//                for (TermsDto term : item.terms()) {
+//                    termIds.add(term.termId());
+//                }
+//                RecommendResultsDto recommendResultsDto = RecommendResultsDto.builder()
+//                        .petId(recommendRequest.petId())
+//                        .level(1)
+//                        .insuranceId(item.insuranceId())
+//                        .termId(termIds)
+//                        .build();
+//                recommendResultsDtos.add(recommendResultsDto);
+//            }
+//
+//            // petId, 우려질병 + 보험결과 level 담아서 전송
+//            SendPetDto sendPetDto = SendPetDto.builder()
+//                    .petId(recommendRequest.petId())
+//                    .concerneds(recommendRequest.concernedNames())
+//                    .build();
+//
+//            FirstRecommendedDto firstRecommendedDto = new FirstRecommendedDto(sendPetDto, recommendResultsDtos);
+//
+//            // 헤더 설정
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//            // 요청 본문과 헤더를 포함한 HttpEntity 생성
+//            HttpEntity<FirstRecommendedDto> request = new HttpEntity<>(firstRecommendedDto, headers);
+//
+//            // 요청 전송 및 응답 처리
+//            ResponseEntity<String> response = restTemplate.exchange(petFirst, HttpMethod.POST, request, String.class);
+//            return CompletableFuture.completedFuture(response);
+//
+//        } catch (Exception e) {
+//            log.error("펫 서버로 전송 실패: {}", e.getMessage());
+//            throw new RuntimeException("펫 서버로 전송 실패", e);
+//        }
+//
+//
+//    }
 
     // 보험 결과, level, petId, 우려질병 -> Pet 서버
     public ResponseEntity<String> sendPetInfo(RecommendRequest recommendRequest,
@@ -81,50 +132,98 @@ public class PetInfoService {
     }
 
     // 2차 보험 결과, level, petId, 실제질병 -> Pet 서버
-    public ResponseEntity<String> sendAdditionalPetInfo(AdditionalRequest additionalRequest,
+    // 비동기 처리
+    @Async
+    public CompletableFuture<ResponseEntity<String>> sendAdditionalPetInfo(AdditionalRequest additionalRequest,
                                                         RecommendResponse recommendResponse) {
-        // 보험결과, level
-        List<String> termIds = new ArrayList<>();
-        for (TermsDto term : recommendResponse.terms()) {
-            termIds.add(term.termId());
-        }
-        RecommendResultsDto recommendResultsDto = RecommendResultsDto.builder()
-                .petId(additionalRequest.petId())
-                .level(2)
-                .insuranceId(recommendResponse.insuranceId())
-                .termId(termIds)
-                .build();
-
-        // petId, 우려질병 + 보험결과 level 담아서 전송
-        SendAdditionalPetInfoDto sendAdditionalPetInfoDto = SendAdditionalPetInfoDto.builder()
-                .petId(additionalRequest.petId())
-                .weight(additionalRequest.weight())
-                .foodCount(additionalRequest.foodCount())
-                .currentDisease(additionalRequest.currentDisease())
-                .build();
-
-        SecondRecommendedDto secondRecommendedDto = new SecondRecommendedDto(sendAdditionalPetInfoDto,
-                recommendResultsDto);
-
-        // 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        // 요청 본문과 헤더를 포함한 HttpEntity 생성
-        HttpEntity<SecondRecommendedDto> request = new HttpEntity<>(secondRecommendedDto, headers);
-
-        // 요청 전송 및 응답 처리
         try {
+            // 보험결과, level
+            List<String> termIds = new ArrayList<>();
+            for (TermsDto term : recommendResponse.terms()) {
+                termIds.add(term.termId());
+            }
+            RecommendResultsDto recommendResultsDto = RecommendResultsDto.builder()
+                    .petId(additionalRequest.petId())
+                    .level(2)
+                    .insuranceId(recommendResponse.insuranceId())
+                    .termId(termIds)
+                    .build();
+
+            // petId, 우려질병 + 보험결과 level 담아서 전송
+            SendAdditionalPetInfoDto sendAdditionalPetInfoDto = SendAdditionalPetInfoDto.builder()
+                    .petId(additionalRequest.petId())
+                    .weight(additionalRequest.weight())
+                    .foodCount(additionalRequest.foodCount())
+                    .currentDisease(additionalRequest.currentDisease())
+                    .build();
+
+            SecondRecommendedDto secondRecommendedDto = new SecondRecommendedDto(sendAdditionalPetInfoDto,
+                    recommendResultsDto);
+
+            // 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // 요청 본문과 헤더를 포함한 HttpEntity 생성
+            HttpEntity<SecondRecommendedDto> request = new HttpEntity<>(secondRecommendedDto, headers);
+
             ResponseEntity<String> response = restTemplate.exchange(petSecond, HttpMethod.POST, request, String.class);
-            return response;
-        } catch (
-                Exception e) {
-            // 예외 처리 (로그 출력 등)
-            log.error("펫서버로 펫정보 전송 실패: {}", e.getMessage());
-            throw new RuntimeException("펫서버로 펫 정보 전송 실패", e);
+
+            return CompletableFuture.completedFuture(response);
+        } catch (Exception e) {
+            log.error("펫 서버로 전송 실패: {}", e.getMessage());
+            throw new RuntimeException("펫 서버로 전송 실패", e);
         }
+
     }
 
+//    public ResponseEntity<String> sendAdditionalPetInfo(AdditionalRequest additionalRequest,
+//                                                        RecommendResponse recommendResponse) {
+//        // 보험결과, level
+//        List<String> termIds = new ArrayList<>();
+//        for (TermsDto term : recommendResponse.terms()) {
+//            termIds.add(term.termId());
+//        }
+//        RecommendResultsDto recommendResultsDto = RecommendResultsDto.builder()
+//                .petId(additionalRequest.petId())
+//                .level(2)
+//                .insuranceId(recommendResponse.insuranceId())
+//                .termId(termIds)
+//                .build();
+//
+//        // petId, 우려질병 + 보험결과 level 담아서 전송
+//        SendAdditionalPetInfoDto sendAdditionalPetInfoDto = SendAdditionalPetInfoDto.builder()
+//                .petId(additionalRequest.petId())
+//                .weight(additionalRequest.weight())
+//                .foodCount(additionalRequest.foodCount())
+//                .currentDisease(additionalRequest.currentDisease())
+//                .build();
+//
+//        SecondRecommendedDto secondRecommendedDto = new SecondRecommendedDto(sendAdditionalPetInfoDto,
+//                recommendResultsDto);
+//
+//        // 헤더 설정
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        // 요청 본문과 헤더를 포함한 HttpEntity 생성
+//        HttpEntity<SecondRecommendedDto> request = new HttpEntity<>(secondRecommendedDto, headers);
+//
+//        // 요청 전송 및 응답 처리
+//        try {
+//            ResponseEntity<String> response = restTemplate.exchange(petSecond, HttpMethod.POST, request, String.class);
+//            return response;
+//        } catch (
+//                Exception e) {
+//            // 예외 처리 (로그 출력 등)
+//            log.error("펫서버로 펫정보 전송 실패: {}", e.getMessage());
+//            throw new RuntimeException("펫서버로 펫 정보 전송 실패", e);
+//        }
+//    }
+
+
+    // -----------------------------------------------------------------------
+    // ML 서버 통신
     public String sendCurrentDisease(AdditionalRequest additionalRequest) {
         int diseaseCode = changeToDiseaseCode(additionalRequest.currentDisease());
 
