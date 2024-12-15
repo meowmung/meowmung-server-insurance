@@ -17,4 +17,14 @@ public interface TermsRepsitory extends JpaRepository<Terms, String> {
     List<Terms> getTerms(@Param("insuranceId") String insuranceId
             , @Param("concernedNames") List<String> concernedNames);
 
+    @Query("""
+            SELECT t
+            FROM Terms t
+            INNER JOIN t.results r
+            WHERE t.insurance.insuranceId = :insuranceId
+            AND r.diseaseName IN :predictionDiseaseName
+        """)
+    List<Terms> getSecondTerms(@Param("insuranceId") String insuranceId
+            , @Param("predictionDiseaseName") String predictionDiseaseName);
+
 }
