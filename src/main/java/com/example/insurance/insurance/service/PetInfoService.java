@@ -46,7 +46,6 @@ public class PetInfoService {
     @Async
     public CompletableFuture<ResponseEntity<String>> sendPetInfo(RecommendRequest recommendRequest,
                                                                  List<RecommendResponse> recommendResponse) {
-
         try {
             // 보험결과, level
             List<RecommendResultsDto> recommendResultsDtos = new ArrayList<>();
@@ -81,8 +80,8 @@ public class PetInfoService {
             return CompletableFuture.completedFuture(response);
 
         } catch (Exception e) {
-            log.error("펫 서버로 전송 실패: {}", e.getMessage());
-            throw new RuntimeException("펫 서버로 전송 실패", e);
+            log.error("펫 서버로 데이터 전송 실패: {}", e.getMessage());
+            throw new RuntimeException("펫 서버로 데이터 전송 실패", e);
         }
     }
 
