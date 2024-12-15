@@ -25,7 +25,6 @@ public class RecommendController {
 
     // 1차 추천
     @PostMapping
-//    public List<RecommendResponse> firstRecommend(@RequestBody RecommendRequest recommendRequest) {
     public void firstRecommend(@RequestBody RecommendRequest recommendRequest) {
         // 보험 결과 추출 해서 client 한테 보내기
         List<RecommendResponse> recommendResponses = recommendService.firstRecommend(recommendRequest);
@@ -43,7 +42,7 @@ public class RecommendController {
     @PostMapping("/additional")
     public RecommendResponse additionalRecommend(@RequestBody AdditionalRequest additionalRequest) {
         String predictionDiseaseName = petInfoService.sendCurrentDisease(additionalRequest);
-        // 보험 결과 추출해서 client 한테 보내기
+        // 보험 결과 추출 해서 client 한테 보내기
         RecommendResponse recommendResponse = recommendService.additionalRecommend(additionalRequest,
                 predictionDiseaseName);
 
@@ -55,7 +54,6 @@ public class RecommendController {
             log.error("펫 서버로 데이터 전송 중 오류 발생: {}", ex.getMessage());
             return null;
         });
-
         return recommendResponse;
     }
 
