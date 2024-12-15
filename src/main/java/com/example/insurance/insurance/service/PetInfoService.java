@@ -81,7 +81,7 @@ public class PetInfoService {
 
         } catch (Exception e) {
             log.error("펫 서버로 데이터 전송 실패: {}", e.getMessage());
-            throw new RuntimeException("펫 서버로 전송 실패", e);
+            throw new RuntimeException("펫 서버로 데이터 전송 실패", e);
         }
     }
 
