@@ -37,8 +37,4 @@ public class Insurance {
     @OneToMany(mappedBy = "insurance", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Terms> terms;
 
-    public void addTerms(List<Terms> ters) {
-        this.terms = terms;
-    }
-
 }

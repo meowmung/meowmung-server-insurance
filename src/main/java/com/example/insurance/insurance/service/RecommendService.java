@@ -24,11 +24,7 @@ public class RecommendService {
     public List<RecommendResponse> firstRecommend(RecommendRequest recommendRequest) {
         List<RecommendResponse> results = getTopInsurances(recommendRequest.concernedNames(),
                 recommendRequest.petType());
-
-        results.forEach(System.out::println);
-
         return results;
-
     }
 
     public List<RecommendResponse> getTopInsurances(List<String> concernedNames, String petType) {
@@ -49,16 +45,13 @@ public class RecommendService {
                     .build();
 
             recommendResponses.add(RecommendResponse.fromEntity(insurance2));
-
         }
-
         return recommendResponses;
     }
 
     // 2차 추천
     public RecommendResponse additionalRecommend(AdditionalRequest additionalRequest, String predictionDiseaseName) {
         Insurance results = getTopInsurance(predictionDiseaseName, additionalRequest.petType());
-
         return RecommendResponse.fromEntity(results);
     }
 
@@ -69,23 +62,18 @@ public class RecommendService {
         Insurance insurance = resultsRepository.getResult(predictionDiseaseName, petType).orElseThrow();
 
         List<RecommendResponse> recommendResponses = new ArrayList<>();
-
-        Insurance insurance1 = insuranceRepository.findById(insurance.getInsuranceId())
-                .orElseThrow(() -> new RuntimeException("해당 보험이 존재하지 않습니다."));
-
-        List<Terms> terms = termsRepsitory.getSecondTerms(insurance1.getInsuranceId(), predictionDiseaseName);
-
-        Insurance insurance2 = Insurance.builder()
-                .insuranceId(insurance1.getInsuranceId())
-                .insuranceItem(insurance1.getInsuranceItem())
-                .company(insurance1.getCompany())
-                .logo(insurance1.getLogo())
+        List<Terms> terms = termsRepsitory.getSecondTerms(insurance.getInsuranceId(), predictionDiseaseName);
+        Insurance insurance1 = Insurance.builder()
+                .insuranceId(insurance.getInsuranceId())
+                .insuranceItem(insurance.getInsuranceItem())
+                .company(insurance.getCompany())
+                .logo(insurance.getLogo())
                 .terms(terms)
                 .build();
 
-        recommendResponses.add(RecommendResponse.fromEntity(insurance2));
+        recommendResponses.add(RecommendResponse.fromEntity(insurance1));
 
-        return insurance2;
+        return insurance1;
     }
 
 }

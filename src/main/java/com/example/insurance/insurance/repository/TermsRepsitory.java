@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface TermsRepsitory extends JpaRepository<Terms, String> {
+    // 1차 추천 결과 보험에 대한 특약
     @Query("""
             SELECT t
             FROM Terms t
@@ -17,6 +18,7 @@ public interface TermsRepsitory extends JpaRepository<Terms, String> {
     List<Terms> getTerms(@Param("insuranceId") String insuranceId
             , @Param("concernedNames") List<String> concernedNames);
 
+    // 2차 추천 결과 보험에 대한 특약
     @Query("""
             SELECT t
             FROM Terms t
