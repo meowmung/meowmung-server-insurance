@@ -29,5 +29,4 @@ public class Results {
     @JsonIgnore
     public Terms terms;
 
-
 }

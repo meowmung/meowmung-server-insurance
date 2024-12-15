@@ -7,6 +7,7 @@ import java.util.List;
 // 보험 1차 추천 요청 응답 값
 public record RecommendResponse(
         String insuranceId,
+        String logo,
         String company,
         String insuranceItem,
         List<TermsDto> terms
@@ -30,6 +31,7 @@ public record RecommendResponse(
         List<TermsDto> list = insurance.getTerms().stream().map(TermsDto::from).toList();
         return new RecommendResponse(
                 insurance.getInsuranceId(),
+                insurance.getLogo(),
                 insurance.getCompany(),
                 insurance.getInsuranceItem(),
 

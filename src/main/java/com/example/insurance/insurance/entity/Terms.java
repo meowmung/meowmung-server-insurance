@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 public class Terms {
     @Id
     @Column(name = "term_id")
-    private String id;
+        private String id;
 
     @Column(name = "term_name")
     private String name;
