@@ -42,7 +42,6 @@ public class RecommendController {
 
     @PostMapping("/additional")
     public RecommendResponse additionalRecommend(@RequestBody AdditionalRequest additionalRequest) {
-
         String predictionDiseaseName = petInfoService.sendCurrentDisease(additionalRequest);
         // 보험 결과 추출해서 client 한테 보내기
         RecommendResponse recommendResponse = recommendService.additionalRecommend(additionalRequest,
