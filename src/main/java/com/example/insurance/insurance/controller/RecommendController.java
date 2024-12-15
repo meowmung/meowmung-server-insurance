@@ -40,6 +40,7 @@ public class RecommendController {
         });
     }
 
+
     @PostMapping("/additional")
     public RecommendResponse additionalRecommend(@RequestBody AdditionalRequest additionalRequest) {
 
