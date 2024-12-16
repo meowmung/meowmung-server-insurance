@@ -25,9 +25,14 @@ public class RecommendController {
 
     // 1차 추천
     @PostMapping
-    public void firstRecommend(@RequestBody RecommendRequest recommendRequest) {
+    public List<RecommendResponse> firstRecommend(@RequestBody RecommendRequest recommendRequest) {
+        log.info("Received RecommendRequest: {}", recommendRequest);
+
         // 보험 결과 추출 해서 client 한테 보내기
         List<RecommendResponse> recommendResponses = recommendService.firstRecommend(recommendRequest);
+        for (RecommendResponse recommendResponse : recommendResponses) {
+            System.out.println(recommendResponse.insuranceItem());
+        }
 
         // 보험 결과 pet 서버로 보내기
         CompletableFuture<ResponseEntity<String>> future = petInfoService.sendPetInfo(recommendRequest, recommendResponses);
@@ -37,6 +42,13 @@ public class RecommendController {
             log.error("펫 서버로 데이터 전송 중 오류 발생: {}", ex.getMessage());
             return null;
         });
+        System.out.println("------------------------------------");
+//        System.out.println(recommendResponses);
+//        recommendResponses.forEach(recommendResponse -> {
+//            System.out.println(recommendResponse.insuranceItem());
+//            System.out.println(recommendResponse.company());
+//        });
+        return recommendResponses;
     }
 
     @PostMapping("/additional")

@@ -28,6 +28,11 @@ public class RecommendService {
     }
 
     public List<RecommendResponse> getTopInsurances(List<String> concernedNames, String petType) {
+        if (concernedNames.size() == 1 && Objects.equals(concernedNames.get(0), "정상")) {
+            concernedNames.remove(0);
+            concernedNames.add("기타");
+        }
+
         List<Insurance> insurances = resultsRepository.getResults(concernedNames, petType);
         List<RecommendResponse> recommendResponses = new ArrayList<>();
 
@@ -59,6 +64,7 @@ public class RecommendService {
         if (Objects.equals(predictionDiseaseName, "정상")) {
             predictionDiseaseName = "기타";
         }
+        System.out.println(predictionDiseaseName);
         Insurance insurance = resultsRepository.getResult(predictionDiseaseName, petType).orElseThrow();
 
         List<RecommendResponse> recommendResponses = new ArrayList<>();
